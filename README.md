@@ -1,4 +1,4 @@
-The first project for the course AST 381, Fall 2017 at UT Austin. The goal of 
+The first project for the course AST 381 (Fall 2017) at UT Austin. The goal of 
 the project is as follows: 
 
 1. Make a function that takes the orbital elements and specified time of a 
