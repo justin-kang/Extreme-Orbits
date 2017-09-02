@@ -1,7 +1,7 @@
 '''
 Class representing celestial objects, such as planets or stars. Contains 
 information about the orbital information about said objects, which is 
-obtained from construction or setters with user input.
+obtained from construction or setters.
 '''
 class CelestialBody:
     _semimajor_axis = None
