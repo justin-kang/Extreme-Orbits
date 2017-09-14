@@ -3,10 +3,9 @@ Class representing celestial objects, such as planets or stars. Contains
 information about the mass and orbital information about said objects, which 
 is obtained from explicit values during construction or user input.
 '''
-import math
+from math import pi
 import astropy.constants
 
-PI = math.pi
 M_SUN = astropy.constants.M_sun.value
 M_JUP = astropy.constants.M_jup.value
 M_EARTH = astropy.constants.M_earth.value
@@ -84,7 +83,7 @@ class CelestialBody:
         if inclination is None:
             while not _check_num(self._inclination):
                 inclination = input('Enter inclination (degrees): ')
-                self._inclination = float(inclination) * PI / 180
+                self._inclination = float(inclination) * pi / 180
         else:
             self._inclination = inclination
 
@@ -94,7 +93,7 @@ class CelestialBody:
             while not _check_num(self._long_ascend_node):
                 long_ascend_node = input(
                     'Enter the longitude of ascending node (degrees): ')
-                self._long_ascend_node = float(long_ascend_node) * PI / 180
+                self._long_ascend_node = float(long_ascend_node) * pi / 180
         else:
             self._long_ascend_node = long_ascend_node
 
@@ -104,7 +103,7 @@ class CelestialBody:
             while not _check_num(self._arg_periapse):
                 arg_periapse = input(
                     'Enter the argument of periapse (degrees): ')
-                self._arg_periapse = float(arg_periapse) * PI / 180
+                self._arg_periapse = float(arg_periapse) * pi / 180
         else:
             self._arg_periapse = arg_periapse
 
@@ -113,7 +112,7 @@ class CelestialBody:
         if true_anomaly is None:
             while not _check_num(self._true_anomaly):
                 true_anomaly = input('Enter the true anomaly (degrees): ')
-                self._true_anomaly = float(true_anomaly) * PI / 180
+                self._true_anomaly = float(true_anomaly) * pi / 180
         else:
             self._true_anomaly = true_anomaly
 
