@@ -24,11 +24,11 @@ def _orbital_period(body_a, body_b):
     # (I.2.23)
     return math.sqrt(4*PI**2 / (G*(mass_a+mass_b)) * a**3) / DAY
 
-def _mean_anomaly(body_a, body_b, t, duration):
+def _mean_anomaly(body_a, body_b, t_i, t_f):
     T = _orbital_period(body_a, body_b)
-    times = np.array([t])
-    for i in range(1, _BIN_COUNT * duration):
-        times = np.append(times, [t + (i / _BIN_COUNT)*T])
+    times = np.array([t_i])
+    for i in range(1, _BIN_COUNT*(t_f-t_i)):
+        times = np.append(times, [t_i + (i/_BIN_COUNT)*T])
     t0 = body_a.get_time_periapse()
     # (I.2.40)
     return times, 2*PI/T*np.subtract(times, t0)
@@ -40,8 +40,8 @@ def _eccentric_anomaly(e, M):
         E = E - np.divide(E - e*np.sin(E) - M, np.subtract(1, e*np.cos(E)))
     return E
 
-def _true_anomaly(body_a, body_b, t, duration):
-    times, M = _mean_anomaly(body_a, body_b, t, duration)
+def _true_anomaly(body_a, body_b, t_i, t_f):
+    times, M = _mean_anomaly(body_a, body_b, t_i, t_f)
     e = body_a.get_eccentricity()
     E = _eccentric_anomaly(e, M)
     # equation from notes to solve for f(E)
@@ -49,14 +49,14 @@ def _true_anomaly(body_a, body_b, t, duration):
 
 # calculates RV by first calculating M(t), using that to find E, then f(E), 
 # and ultimately v(f(E)) (aka changing the function from v(f) to v(t))
-def radial_velocity(body_a, body_b, t, duration):
+def radial_velocity(body_a, body_b, t_i, t_f):
     mass_a = body_a.get_mass()
     mass_b = body_b.get_mass()
     a = body_a.get_semimajor_axis()
     e = body_a.get_eccentricity()
     i = body_a.get_inclination()
     w = body_a.get_arg_periapse()
-    times, f = _true_anomaly(body_a, body_b, t, duration)
+    times, f = _true_anomaly(body_a, body_b, t_i, t_f)
     # (II.1.11)
     return times, math.sqrt(G / ((mass_a+mass_b)*a*(1-e**2))) * \
         mass_b*math.sin(i) * np.add(np.cos(np.add(w,f)), e*math.cos(w))

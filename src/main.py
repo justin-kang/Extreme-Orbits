@@ -1,58 +1,60 @@
 import math
 import numpy as np
-import astropy.constants
+from astropy import constants, time
 from matplotlib import pyplot as plt, rc 
 from celestialbody import CelestialBody
 from radialvelocity import radial_velocity
 from position import projected_separation, position_angle
 rc('text', usetex = True)
 
+# constants
 PI = math.pi
-AU = astropy.constants.au.value
-M_JUP = astropy.constants.M_jup.value
-M_SUN = astropy.constants.M_sun.value
-# the number of days to run the test for
-DURATION = 10
+AU = constants.au.value
+M_JUP = constants.M_jup.value
+M_SUN = constants.M_sun.value
+# the start and end times to run the "detections" for
+START = (time.Time('2017-08-01 00:00:00', format='iso', scale='utc')).jd
+END = (time.Time('2018-01-01 00:00:00', format='iso', scale='utc')).jd
 
-# TEST DATA
-# values for 51 Peg b
-mass_a = 0.472 * M_JUP
-a = 0.0527 * AU
-e = 0.013
-i = 80 * PI / 180
+# https://exoplanetarchive.ipac.caltech.edu/cgi-bin/DisplayOverview/nph-
+# DisplayOverview?objname=HD+80606+b
+# values for HD 80606 b
+mass_a = 3.94 * M_JUP
+a = 0.449 * AU
+e = 0.9332
+i = 89.32
 z = 0
-w = 58 * PI / 180
+w = 300.80 * PI / 180
 f = 0
-t0 = 2450001
-# values for 51 Peg
-mass_b = 1.06 * M_SUN
-body_a = CelestialBody(mass_a, a, e, i, z, w, f, t0)
-body_b = CelestialBody(mass_b, a, e, i, z, (w + PI) % (2 * PI), f, t0)
+t0 = 2454424.852
+# values for HD 80606
+mass_b = 0.97 * M_SUN
+HD_80606_b = CelestialBody(mass_a, a, e, i, z, w, f, t0)
+HD_80606 = CelestialBody(mass_b, a, e, i, z, (w + PI) % (2 * PI), f, t0)
 
-# TEST FOR RV CORRECTNESS
-'''
-(times_p, rv_p) = radial_velocity(body_a, body_b, t0, DURATION)
-(times_s, rv_s) = radial_velocity(body_b, body_a, t0, DURATION)
+# Question 2
+times_p, rv_p = radial_velocity(HD_80606_b, HD_80606, START, END)
+times_s, rv_s = radial_velocity(HD_80606, HD_80606_b, START, END)
 rv_p = np.divide(rv_p, 1000)
 plt.figure(1)
 plt.subplot(211)
 plt.plot(times_p, rv_p)
-plt.title(r'\textbf{The RV Curve for 51 Peg b}')
+plt.title(r'\textbf{The RV Curve for HD 80606 b}')
 plt.xlabel('Time (JD)')
 plt.ylabel('Velocity (km/s)')
 plt.ticklabel_format(useOffset=False, scientific=False)
 plt.subplot(212)
 plt.plot(times_s, rv_s)
-plt.title(r'\textbf{The RV Curve for 51 Peg}')
+plt.title(r'\textbf{The RV Curve for HD 80606}')
 plt.xlabel('Time (JD)')
 plt.ylabel('Velocity (m/s)')
-plt.ticklabel_format(useOffset=False, scientific=False)
+plt.ticklabel_format(useOffset=False,  scientific=False)
 plt.tight_layout()
 plt.show()
-'''
 
-# TEST FOR PROJECTED SEPARATION AND POSITION ANGLE CORRECTNESS
-Y, Z = projected_separation(body_a, body_b, t0)
-vals = np.sqrt(np.square(Y) + np.square(Z))
-print(vals)
-print(position_angle(body_a, body_b, t0))
+# Question 3
+
+
+
+# Question 4
+
