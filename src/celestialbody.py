@@ -13,6 +13,7 @@ AU = astropy.constants.au.value
 
 class CelestialBody:
     _mass = None
+    _radius = None
     _semimajor_axis = None
     _eccentricity = None
     _inclination = None
@@ -26,6 +27,7 @@ class CelestialBody:
 
     def __init__(self):
         self.set_mass(None)
+        self.set_radius(0)
         self.set_semimajor_axis(None)
         self.set_eccentricity(None)
         self.set_inclination(None)
@@ -34,8 +36,9 @@ class CelestialBody:
         self.set_true_anomaly(None)
         self.set_time_periapse(None)
 
-    def __init__(self, m, a, e, i, z, w, f, t):
+    def __init__(self, m, r, a, e, i, z, w, f, t):
         self.set_mass(m)
+        self.set_radius(r)
         self.set_semimajor_axis(a)
         self.set_eccentricity(e)
         self.set_inclination(i)
@@ -61,6 +64,14 @@ class CelestialBody:
                         'use \'M_sun,\' \'M_jup,\' or \'M_earth\'')
         else:
             self._mass = mass
+
+    # stores as meters
+    def set_radius(self, radius):
+        if radius is None:
+            while not _check_num(self._radius):
+                self._radius = input('Enter radius (km): ') * 1000
+        else:
+            self._radius = radius
 
     def set_eccentricity(self, eccentricity):
         if eccentricity is None:
@@ -126,6 +137,9 @@ class CelestialBody:
 
     def get_mass(self):
         return self._mass
+
+    def get_radius(self):
+        return self._radius
 
     def get_semimajor_axis(self):
         return self._semimajor_axis
