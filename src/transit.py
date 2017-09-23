@@ -7,6 +7,7 @@ from position import projected_separation
 
 AU = astropy.constants.au.value
 
+# returns when body_a transits body_b, if at all
 def transit(body_a, body_b, t_i, t_f):
     # used for checking if planet is in front of the star
     f = _true_anomaly(body_a, body_b, t_i, t_f)[1]

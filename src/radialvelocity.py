@@ -45,6 +45,7 @@ def _true_anomaly(body_a, body_b, t_i, t_f):
 
 # calculates RV by first calculating M(t), using that to find E, then f(E), 
 # and ultimately v(f(E)) (aka changing the function from v(f) to v(t))
+# returns the RV of body_a with respect to body_b
 def radial_velocity(body_a, body_b, t_i, t_f):
     mass_a = body_a.get_mass()
     mass_b = body_b.get_mass()

@@ -20,10 +20,11 @@ def _offsets_planet(dist, body_a, body_b, times):
         angles = np.append(angles, angle)
     d_ra = np.arctan(np.multiply(separations, np.sin(angles)) / dist)
     d_dec = np.arctan(np.multiply(separations, np.cos(angles)) / dist)
-    return d_ra, d_dec
+    index = separations.tolist().index(max(np.fabs(separations)))
+    print(max(np.absolute(d_ra))*1000)
+    print(max(np.absolute(d_dec))*1000)
+    return d_ra * 1000, d_dec * 1000
 
-# https://github.com/Caltech-IPAC/Montage/blob/master/lib/src/coord/
-# convertEclEqu.c
 # finds the equatorial pole
 def _eq_pole(time):
     t = (time - JD) * 0.01
@@ -96,7 +97,7 @@ def _many_ec_to_eq(lon, lat, times):
     ra = np.array([])
     dec = np.array([])
     for idx, time in enumerate(times):
-        rat, dect = _eq_to_ec(lon[idx], lat[idx], time)
+        rat, dect = _ec_to_eq(lon[idx], lat[idx], time)
         ra = np.append(ra, rat * PI/180)
         dec = np.append(dec, dect * PI/180)
     return ra, dec
@@ -111,7 +112,6 @@ def _many_eq_to_ec(ra, dec, times):
         lat = np.append(lat, latt * PI/180)
     return lon, lat
 
-# http://aa.usno.navy.mil/faq/docs/SunApprox.php
 # gives the sun's longitude wrt Earth for a given time
 def _sun_longitude(times):
     d = times - JD
@@ -128,16 +128,16 @@ def _offsets_parallax(ra, dec, dist, times):
     dl = parallax * np.sin(sun_lon - lon) / np.cos(lat)
     db = -parallax * np.cos(sun_lon - lon) * np.sin(lat)
     new_ra, new_dec = _many_ec_to_eq(lon + dl, lat + db, times)
-    return (new_ra - ra) * 180/PI * 60*60, (new_dec - dec) * 180/PI * 60*60
+    return (new_ra - ra) * 180/PI * 60*60*1000, \
+        (new_dec - dec) * 180/PI * 60*60*1000
 
 # the change in RA and DEC caused by the star's proper motion
 def _offsets_proper(m_ra, m_dec, times):
     return m_ra * (times - JD), m_dec * (times - JD)
 
 # change in RA and DEC caused by planet in mas
-def astrometry_planet(dist, body_a, body_b, times):
-    d_ra, d_dec = _offsets_planet(dist, body_a, body_b, times)
-    return d_ra * 1000, d_dec * 1000
+def astrometry_planet(ra, dec, dist, body_a, body_b, times):
+    return _offsets_planet(dist, body_a, body_b, times)
 
 # change in RA and DEC caused by planet and parallax in mas
 def astrometry_parallax(ra, dec, dist, body_a, body_b, times):
@@ -146,16 +146,16 @@ def astrometry_parallax(ra, dec, dist, body_a, body_b, times):
     dec = dec * PI/180
     ra_plan, dec_plan = astrometry_planet(dist, body_a, body_b, times)
     ra_par, dec_par = _offsets_parallax(ra, dec, dist, times)
-    return ra_plan + ra_par * 1000, dec_plan + dec_par * 1000
+    return ra_plan + ra_par, dec_plan + dec_par
 
 # change in RA and DEC caused by planet, parallax, and proper motion in mas
 def astrometry_proper(m_ra, m_dec, ra, dec, dist, body_a, body_b, times):
     # convert from degrees to radians
     ra = ra * PI/180
     dec = dec * PI/180
-    # convert from mas/yr to as/day
-    m_ra = m_ra / (365 * 1000)
-    m_dec = m_dec / (365 * 1000)
-    ra_par, dec_par = astrometry_parallax(ra, dec, dist, body_a, body_b, times)
+    # convert from mas/yr to mas/day
+    m_ra = m_ra / 365
+    m_dec = m_dec / 365
+    ra_par, dec_par = astrometry_parallax(ra, dec, dist, times)
     ra_prop, dec_prop = _offsets_proper(m_ra, m_dec, times)
-    return ra_par + ra_prop * 1000, dec_par + dec_prop * 1000
+    return ra_par + ra_prop, dec_par + dec_prop

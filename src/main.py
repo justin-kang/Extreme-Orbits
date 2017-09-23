@@ -19,8 +19,6 @@ R_SUN = constants.R_sun.value
 START = (time.Time('2017-08-01 00:00:00', format='iso', scale='utc')).jd
 END = (time.Time('2018-01-01 00:00:00', format='iso', scale='utc')).jd
 
-# https://exoplanetarchive.ipac.caltech.edu/cgi-bin/DisplayOverview/nph-
-# DisplayOverview?objname=HD+80606+b
 # values for HD 80606 b
 # mass (kg)
 mass_a = 3.94 * M_JUP
@@ -51,79 +49,80 @@ body_a = CelestialBody(mass_a, r_a, a, e, i, z, w, f, t0)
 body_b = CelestialBody(mass_b, r_b, a, e, i, z, (w + PI) % (2 * PI), f, t0)
 
 # Question 2
-'''
-times, rv_p = radial_velocity(body_a, body_b, START, END)
-rv_p = rv_p / 1000
-times, rv_s = radial_velocity(body_b, body_a, START, END)
+#'''
+times, rv = radial_velocity(body_b, body_a, START, END)
+rv_max = max(rv)
+rv_min = min(rv)
+# get the times the max and min of RV will be
+max_idx = np.argpartition(rv, -2)[-2:]
+min_idx = np.argpartition(rv, 2)[:2]
+print("Time(s) of RV max:", times[max_idx])
+print("Time(s) of RV min:", times[min_idx])
+# plot the stellar RV curve
 plt.figure(1)
-ax = plt.subplot(211)
-plt.plot(times - 2450000, rv_s)
+plt.plot(times - 2450000, rv)
 plt.xlabel('Time (JD - 2450000)')
 plt.ylabel('Radial Velocity (m/s)')
 plt.ticklabel_format(useOffset=False, scientific=False)
 plt.tight_layout()
-plt.subplot(212, sharex=ax)
-plt.plot(times - 245000, rv_p)
-plt.ylabel('Radial Velocity (km/s)')
-plt.ticklabel_format(useOffset=False, scientific=False)
-plt.tight_layout()
 plt.show()
-'''
+plt.close()
+#'''
 
-# airmass under 3
 # Question 3
-'''
+#'''
 times, transits = transit(body_a, body_b, START, END)
+# get the times body_a is transiting body_b, if at all
+print('Times of transit:')
+for idx, time in enumerate(times):
+    if transits[idx] == 1:
+        print(time)
+# plot the occurrences of transits
 plt.figure(2)
-# 2457993.963 - 2457994.383
-# August 28 11:06:43.2 - 21:11:31.2
-# 2458105.326 - 2458105.746
-# December 17 19:49:26.4 - December 18 05:54:14.4
 plt.plot(times - 2450000, transits)
 plt.xlabel('Time (JD - 2450000)')
 plt.ylabel('Transit Occurrence')
 plt.ticklabel_format(useOffset=False, scientific=False)
 plt.tight_layout()
 plt.show()
-'''
-
+plt.close()
 #'''
+
 # Question 4
-# https://www.cosmos.esa.int/web/gaia/dr1
+#'''
 # HD 80606 has a magnitude of 8.93, so average precisions for 8.32 and 9.73
-# astrometric uncertainty of GAIA (position, parallax, proper motion) (mas)
+# astrometric uncertainty of GAIA for position, parallax, proper motion (mas)
 u_pos = 0.36
-u_par = 0.68 + u_pos
-u_prop = 0.105 + u_par
-# http://simbad.u-strasbg.fr/simbad/sim-id?Ident=HD%2080606
+u_par = 0.68
+u_prop = 0.105
 # equatorial coordinates of HD 80606 (degrees)
-ra = (9 + 22/60 + 37.5769/3600) * 180/12
-dec = 50 + 36/60 + 13.430/3600
+ra = (9 + 22/60 + 35.2/3600) * 180/12
+dec = 50 + 36/60 + 29/3600
 # distance to HD 80606 from Earth (pc)
 dist = 58.4
 # proper motion of HD 80606 (mas/yr)
 m_ra = 45.76
 m_dec = 16.56
 # array of 100 randomly timed epochs over 5 years beginning with START
-times = np.sort(np.random.rand(100)) * 86400 * 365 * 5 + START
+times = np.sort(np.random.rand(100)) * 365 * 5 + START
 # RA vs t, DEC vs t, DEC vs RA for planet
-ra_plan, dec_plan = astrometry_planet(dist, body_a, body_b, times)
+ra_plan, dec_plan = astrometry_planet(ra, dec, dist, body_a, body_b, times)
 plt.figure(3)
 plt.xlabel('Time (JD - 2450000)')
-plt.ylabel('Right Ascension (mas)')
-plt.errorbar(times - 245000, ra_plan, xerr=u_pos, yerr=u_pos)
+plt.ylabel('Change in Right Ascension (mas)')
+plt.errorbar(times - 2450000, ra_plan, xerr=u_pos, yerr=u_pos, ecolor='g')
 plt.ticklabel_format(useOffset=False, scientific=False)
 plt.tight_layout()
 plt.figure(4)
 plt.xlabel('Time (JD - 2450000)')
-plt.ylabel('Declination (mas)')
-plt.errorbar(times - 245000, dec_plan, xerr=u_pos, yerr=u_pos)
+plt.ylabel('Change in Declination (mas)')
+plt.errorbar(times - 2450000, dec_plan, xerr=u_pos, yerr=u_pos, ecolor='g')
 plt.ticklabel_format(useOffset=False, scientific=False)
 plt.tight_layout()
 plt.figure(5)
-plt.xlabel('Right Ascension (mas)')
-plt.ylabel('Declination (mas)')
-plt.errorbar(ra_plan, dec_plan, xerr=u_pos, yerr=u_pos)
+plt.xlabel('Change in Right Ascension (mas)')
+plt.ylabel('Change in Declination (mas)')
+plt.errorbar(ra_plan, dec_plan, xerr=u_pos, yerr=u_pos, ecolor='g')
 plt.ticklabel_format(useOffset=False, scientific=False)
 plt.tight_layout()
 plt.show()
@@ -131,20 +130,20 @@ plt.show()
 ra_par, dec_par = astrometry_parallax(ra, dec, dist, body_a, body_b, times)
 plt.figure(6)
 plt.xlabel('Time (JD - 2450000)')
-plt.ylabel('Right Ascension (mas)')
-plt.errorbar(times - 245000, ra_par, xerr=u_par, yerr=u_par)
+plt.ylabel('Change in Right Ascension (mas)')
+plt.errorbar(times - 2450000, ra_par, xerr=u_par, yerr=u_par, ecolor='g')
 plt.ticklabel_format(useOffset=False, scientific=False)
 plt.tight_layout()
 plt.figure(7)
 plt.xlabel('Time (JD - 2450000)')
-plt.ylabel('Declination (mas)')
-plt.errorbar(times - 245000, dec_par, xerr=u_par, yerr=u_par)
+plt.ylabel('Change in Declination (mas)')
+plt.errorbar(times - 2450000, dec_par, xerr=u_par, yerr=u_par, ecolor='g')
 plt.ticklabel_format(useOffset=False, scientific=False)
 plt.tight_layout()
 plt.figure(8)
-plt.xlabel('Right Ascension (mas)')
-plt.ylabel('Declination (mas)')
-plt.errorbar(ra_par, dec_par, xerr=u_par, yerr=u_par)
+plt.xlabel('Change in Right Ascension (mas)')
+plt.ylabel('Change in Declination (mas)')
+plt.errorbar(ra_par, dec_par, xerr=u_par, yerr=u_par, ecolor='g')
 plt.ticklabel_format(useOffset=False, scientific=False)
 plt.tight_layout()
 plt.show()
@@ -153,21 +152,22 @@ ra_prop, dec_prop = astrometry_proper(m_ra, m_dec, ra, dec, dist, body_a,
     body_b, times)
 plt.figure(9)
 plt.xlabel('Time (JD - 2450000)')
-plt.ylabel('Right Ascension (mas)')
-plt.errorbar(times - 245000, ra_prop, xerr=u_prop, yerr=u_prop)
+plt.ylabel('Change in Right Ascension (mas)')
+plt.errorbar(times - 2450000, ra_prop, xerr=u_prop, yerr=u_prop, ecolor='g')
 plt.ticklabel_format(useOffset=False, scientific=False)
 plt.tight_layout()
 plt.figure(10)
 plt.xlabel('Time (JD - 2450000)')
-plt.ylabel('Declination (mas)')
-plt.errorbar(times - 245000, dec_prop, xerr=u_prop, yerr=u_prop)
+plt.ylabel('Change in Declination (mas)')
+plt.errorbar(times - 2450000, dec_prop, xerr=u_prop, yerr=u_prop, ecolor='g')
 plt.ticklabel_format(useOffset=False, scientific=False)
 plt.tight_layout()
 plt.figure(11)
-plt.xlabel('Right Ascension (mas)')
-plt.ylabel('Declination (mas)')
-plt.errorbar(ra_prop, dec_prop, xerr=u_prop, yerr=u_prop)
+plt.xlabel('Change in Right Ascension (mas)')
+plt.ylabel('Change in Declination (mas)')
+plt.errorbar(ra_prop, dec_prop, xerr=u_prop, yerr=u_prop, ecolor='g')
 plt.ticklabel_format(useOffset=False, scientific=False)
 plt.tight_layout()
 plt.show()
+plt.close()
 #'''
